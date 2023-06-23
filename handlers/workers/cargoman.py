@@ -132,21 +132,30 @@ class Manager:
         o_weight = Decimal('0.00')
         o_money = Decimal('0.00')
         for item, element in data.items():
+
             # текст вес
             coutn_box = str(int(element['count']) * int(element['boxs']))
             count_bottle = str(int(element['count']) * int(element['boxs'] * int(element['quantyti'])))
             _weight = str(float(count_bottle) * float(element['weight']))
             number = Decimal(_weight)
             weight = number.quantize(Decimal("1.00"))
-            text_weight += (
-                        item + f" {coutn_box}кор. * {element['quantyti']}бут. = {count_bottle}бут. * {element['weight']}кг. = {weight}кг.\n")
+
             o_weight += weight
             # текст деньги
             _money = str(float(count_bottle) * float(element['price']))
             number = Decimal(_money)
             price = number.quantize(Decimal("1.00"))
-            text_money += f"{item} {count_bottle}бут. * {element['price']}руб. = {price}руб.\n"
             o_money += price
+            if item.capitalize().startswith('Майонез'):
+                text_weight += f'{item} {coutn_box}вед. * {element["weight"]}кг. = {weight}кг.\n'
+                text_money += f"{item} {count_bottle}вед. * {element['price']}руб. = {price}руб.\n"
+            elif item.capitalize().startswith('Маргарин') or item.capitalize().startswith('Пальм'):
+                text_weight += f'{item} {coutn_box}кор. * {element["quantyti"]}кг. = {weight}кг.\n'
+                text_money += f"{item} {count_bottle}кг. * {element['price']}руб. = {price}руб.\n"
+            else:
+                text_money += f"{item} {count_bottle}бут. * {element['price']}руб. = {price}руб.\n"
+                text_weight += (
+                        item + f" {coutn_box}кор. * {element['quantyti']}бут. = {count_bottle}бут. * {element['weight']}кг. = {weight}кг.\n")
 
         text_money += f'Итого: {o_money}руб.'
         text_weight += f'Итого: {o_weight}кг.'
