@@ -7,6 +7,7 @@ kb_start = ReplyKeyboardMarkup(
             KeyboardButton(text='Оплаченные'),
             KeyboardButton(text='Неоплаченные')],
         [
-            KeyboardButton(text='Новая доставка')
+            KeyboardButton(text='Новая доставка'),
+            KeyboardButton(text="Погрузка")
         ],
     ], resize_keyboard=True, one_time_keyboard=True, row_width=3)
