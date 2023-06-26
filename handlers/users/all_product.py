@@ -13,7 +13,7 @@ async def all_product(message: types.Message, state=FSMContext):
     cargo = Cargonist()
     all_product = await cargo.get_all_product()
     buttons = types.InlineKeyboardMarkup(row_width=1)
-    await cargo.close()
+
     for item in all_product:
         buttons.add(types.InlineKeyboardButton(text=item[0], callback_data=item[0]))
     await message.answer('Выберите продукт', reply_markup=buttons)
@@ -23,7 +23,6 @@ async def all_product(message: types.Message, state=FSMContext):
 async def product(call: types.CallbackQuery, state: FSMContext):
     cargo = Cargonist()
     product = await cargo.get_by_name(call.data)
-    await cargo.close()
     await state.set_state(ProductState.edit)
     await state.update_data(product=product)
     await call.message.answer(
@@ -59,13 +58,12 @@ async def del_product(call: types.CallbackQuery, state: FSMContext):
         for item in all_product:
             buttons.add(types.InlineKeyboardButton(text=item[0], callback_data=item[0]))
         await call.message.answer('Выберите продукт', reply_markup=buttons)
-        await cargo.close()
+
     elif call.data == 'no':
         await state.set_state(ProductState.start)
         cargo = Cargonist()
         all_product = await cargo.get_all_product()
         buttons = types.InlineKeyboardMarkup(row_width=1)
-        await cargo.close()
         for item in all_product:
             buttons.add(types.InlineKeyboardButton(text=item[0], callback_data=item[0]))
         await call.message.answer('Выберите продукт', reply_markup=buttons)
@@ -88,7 +86,7 @@ async def edit_price(message:types.Message, state:FSMContext):
         try:
             await state.set_state(ProductState.edit)
             await cargo.edit_price(product.name, float(message.text))
-            await cargo.close()
+
             await message.answer(f'Цена на {product.name} успешно изменина')
         except Exception as er:
             await message.answer(f'ОШИБКА !!! {er}')

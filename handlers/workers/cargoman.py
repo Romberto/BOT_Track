@@ -2,114 +2,145 @@ import sqlite3
 
 from collections import namedtuple
 from decimal import Decimal
+from data.config import NAME_DB, USER_DB, PASSWORD_DB
+
+import psycopg2
 
 
 class FormingCargonist:
     def __init__(self):
-        self.conn = sqlite3.connect(r'products.db')
+        self.conn = psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                                     password=PASSWORD_DB, host='localhost')
         self.cur = self.conn.cursor()
         self.cur.execute("""CREATE TABLE IF NOT EXISTS cargo(      
                    name VARCHAR(40)  PRIMARY KEY NOT NULL,
                    quantity_poddons INTEGER,
-                   quantity_box INTEGER,
-                   FOREIGN KEY(name) REFERENCES prod(name));
+                   quantity_box INTEGER
+                   );
                 """)
         self.conn.commit()
 
-    async def close(self):
-        self.conn.close()
-
     async def add_cargo(self, name, quantyti):
-        query_boxs = self.cur.execute('SELECT quantity_kor FROM prod WHERE name=?', (name,))
-        quantity_box = int(query_boxs.fetchone()[0]) * int(quantyti)
-        self.cur.execute(f"INSERT INTO cargo VALUES ('{name}', {quantyti}, {quantity_box})")
-        self.conn.commit()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cur:
+
+                cur.execute('SELECT quantity_kor FROM prod WHERE name=%s',(str(name),))
+                quantity_box = int(cur.fetchone()[0]) * int(quantyti)
+                self.cur.execute("INSERT INTO cargo VALUES (%s, %s, %s)", (name, quantyti, quantity_box))
+                self.conn.commit()
+                return True
+
+
 
     async def all_cargo(self):
-        res = self.cur.execute("SELECT * FROM cargo")
-        return res.fetchall()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM cargo")
+                return cur.fetchall()
 
     async def del_cargo(self):
-        self.cur.execute('DELETE FROM cargo;', )
-        self.conn.commit()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cur:
+                cur.execute('DELETE FROM cargo;', )
+                conn.commit()
 
     async def edit_box_cargo(self, name, new_quantity):
-        self.cur.execute('''UPDATE cargo SET quantity_box = ? WHERE name = ?''', (new_quantity, name))
-        self.conn.commit()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'UPDATE cargo SET quantity_box = %s WHERE name = %s',(new_quantity, name))
+                conn.commit()
 
 
 class Cargonist:
     def __init__(self):
-        self.conn = sqlite3.connect(r'products.db')
-        self.cur = self.conn.cursor()
-        self.cur.execute("""CREATE TABLE IF NOT EXISTS prod(
-           
-           name VARCHAR(40) PRIMARY KEY NOT NULL,
-           quantity_kor INTEGER, 
-           quantity_kg_or_ed INTEGER,
-           price INTEGER,
-           weight INTEGER);
-        """)
-        self.conn.commit()
-
-    async def close(self):
-        self.conn.close()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""CREATE TABLE IF NOT EXISTS prod(    
+                   name VARCHAR(40) PRIMARY KEY NOT NULL,
+                   quantity_kor INTEGER, 
+                   quantity_kg_or_ed INTEGER,
+                   price INTEGER,
+                   weight INTEGER);
+                """)
+                conn.commit()
 
     async def add_product(self, name: str, boxs: int, quantity_item: int, price: float, weight: float):
-        try:
-            self.cur.execute(f"INSERT INTO prod VALUES ('{name}', {boxs}, {quantity_item}, {price}, {weight})")
-            self.conn.commit()
-
-            return True
-        except sqlite3.IntegrityError as err:
-            print('продукт с таким наименованием уже существует')
-            print(err)
-            return False
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(f"INSERT INTO prod VALUES ('{name}', {boxs}, {quantity_item}, {price}, {weight})")
+                    conn.commit()
+                    return True
+                except Exception:
+                    return False
 
     async def get_all_product(self):
-        res = self.cur.execute("SELECT name FROM prod")
-        return res.fetchall()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT name FROM prod")
+                return cursor.fetchall()
+
 
     async def delete_product(self, name):
-        res = self.cur.execute("DELETE FROM prod WHERE name=?", (name,))
-        self.conn.commit()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(f"DELETE FROM prod WHERE name='{name}'")
+                conn.commit()
 
     async def get_by_name(self, name):
-        try:
-            res = self.cur.execute(f"SELECT * FROM prod WHERE name = ?", (name,))
-            Product = namedtuple('Product', ['name', 'boxs', 'quantity', 'price', 'weight'])
-            data = res.fetchone()
-            p = Product(
-                name=data[0],
-                boxs=data[1],
-                quantity=data[2],
-                price=data[3],
-                weight=data[4]
-            )
-            return p
-        except Exception:
-            print('Ошибка !!! в методе get_by_name')
-            return False
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(f"SELECT * FROM prod WHERE name = '{name}';")
+                    Product = namedtuple('Product', ['name', 'boxs', 'quantity', 'price', 'weight'])
+                    data = cursor.fetchone()
+                    p = Product(
+                        name=data[0],
+                        boxs=data[1],
+                        quantity=data[2],
+                        price=data[3],
+                        weight=data[4]
+                    )
+                    return p
+                except Exception as er:
+                    print(f'Ошибка !!! в методе get_by_name\n {er}')
+                    return False
 
     async def edit_price(self, product_name, new_price):
-        self.cur.execute('''UPDATE prod SET price = ? WHERE name = ?''', (new_price, product_name))
-        self.conn.commit()
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute('UPDATE prod SET price = %s WHERE name = %s;', (new_price, product_name))
+                conn.commit()
 
 
 class Manager:
     async def get_data_cargo(self):
-        with sqlite3.connect(r'products.db') as conn:
-            cur = conn.cursor()
-            query = cur.execute("SELECT * FROM cargo;")
-            cargo_list = query.fetchall()
-        return cargo_list
+
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+
+                cursor.execute("SELECT * FROM cargo;")
+                cargo_list = cursor.fetchall()
+                return cargo_list
 
     async def get_data_product(self, name):
-        with sqlite3.connect(r'products.db') as conn:
-            cur = conn.cursor()
-            query = cur.execute("SELECT * FROM prod WHERE name = ?;", (name,))
-            cargo_list = query.fetchone()
-            return cargo_list
+        with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
+                              password=PASSWORD_DB, host='localhost') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(f"SELECT * FROM prod WHERE name = '{name}';")
+                cargo_list = cursor.fetchone()
+                return cargo_list
 
     async def tr(self):
         res = {}

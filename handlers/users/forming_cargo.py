@@ -15,7 +15,7 @@ from states.cargo import CargoState, FormingCargoState
 async def looking_cargo(message: types.Message, state: FSMContext):
     fc = FormingCargonist()
     all_cargo = await fc.all_cargo()
-    await fc.close()
+
     if all_cargo:
         await state.set_state(FormingCargoState.cargo_del)
         await message.answer(all_cargo, reply_markup=cargo_edit_kb)
@@ -28,7 +28,7 @@ async def looking_cargo(message: types.Message, state: FSMContext):
 async def del_cargo(message: types.Message, state: FSMContext):
     fc = FormingCargonist()
     await fc.del_cargo()
-    await fc.close()
+
     await state.set_state(FormingCargoState.start)
     await message.answer('Погрузка удалена, кузов пуст', reply_markup=cargo_kb)
 
@@ -37,7 +37,7 @@ async def del_cargo(message: types.Message, state: FSMContext):
 async def edit_boxs(message: types.Message, state: FSMContext):
     fc = FormingCargonist()
     all_cargo = await fc.all_cargo()
-    await fc.close()
+
     edit_cargo_kb = types.InlineKeyboardMarkup(row_width=2)
     await state.set_state(FormingCargoState.cargo_edit)
     for cargo in all_cargo:
@@ -62,7 +62,7 @@ async def edit_cargo_fin(message:types.Message, state:FSMContext):
         name = data['edit_name']
         fc = FormingCargonist()
         await fc.edit_box_cargo(name=name, new_quantity=int(message.text))
-        await fc.close()
+
         await state.set_state(CargoState.start)
         await message.answer(f'Количество коробок у продукта {name} изменено на {message.text}', reply_markup=cargo_kb)
 @dp.message_handler(
@@ -77,7 +77,7 @@ async def forming_cargo(message: types.Message, state: FSMContext):
         buttons.add(types.InlineKeyboardButton(text=product[0], callback_data=product[0]))
     # todo проверить наличие прошлых погрузок, предложить продолжить или начать заново
     await message.answer('какой продукт грузим ?', reply_markup=buttons)
-    await cargo.close()
+
 
 
 @dp.callback_query_handler(state=FormingCargoState.start)
@@ -97,9 +97,10 @@ async def save_row_cargo(message: types.Message, state: FSMContext):
         try:
             await fc.add_cargo(name, quantity)
             all_cargo = await fc.all_cargo()
-            await fc.close()
+
             await message.answer(all_cargo, reply_markup=cargo_kb)
-        except sqlite3.IntegrityError:
+        except Exception as e:
+            print(e)
             await message.answer('такой продукт уже загружен')
             cargo = Cargonist()
             all_prod = await cargo.get_all_product()
@@ -109,7 +110,7 @@ async def save_row_cargo(message: types.Message, state: FSMContext):
                 buttons.add(types.InlineKeyboardButton(text=product[0], callback_data=product[0]))
             # todo проверить наличие прошлых погрузок, предложить продолжить или начать заново
             await message.answer('какой продукт грузим ?', reply_markup=buttons)
-            await cargo.close()
+
 
     else:
         await message.answer('количество поддонов нужно указать цифрой')

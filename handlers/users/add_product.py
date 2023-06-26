@@ -53,7 +53,6 @@ async def get_name(message: types.Message, state=FSMContext):
 
         cargo = Cargonist()
         result = await cargo.add_product(name,boxs,quantity,price,weight)
-        await cargo.close()
         await state.set_state(CargoState.start)
         if result:
             await message.answer('товар добавлен в базу')

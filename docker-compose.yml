@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=myproject
+      - DB_USER=romberto
+      - DB_PASSWORD=Lpw143522!43
+    restart: always
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=myproject
+      - POSTGRES_USER=romberto
+      - POSTGRES_PASSWORD=Lpw143522!43
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
