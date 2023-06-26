@@ -10,7 +10,7 @@ import psycopg2
 class FormingCargonist:
     def __init__(self):
         self.conn = psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                                     password=PASSWORD_DB, host='localhost')
+                                     password=PASSWORD_DB, host='db')
         self.cur = self.conn.cursor()
         self.cur.execute("""CREATE TABLE IF NOT EXISTS cargo(      
                    name VARCHAR(40)  PRIMARY KEY NOT NULL,
@@ -22,43 +22,40 @@ class FormingCargonist:
 
     async def add_cargo(self, name, quantyti):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cur:
-
-                cur.execute('SELECT quantity_kor FROM prod WHERE name=%s',(str(name),))
+                cur.execute('SELECT quantity_kor FROM prod WHERE name=%s', (str(name),))
                 quantity_box = int(cur.fetchone()[0]) * int(quantyti)
                 self.cur.execute("INSERT INTO cargo VALUES (%s, %s, %s)", (name, quantyti, quantity_box))
                 self.conn.commit()
                 return True
 
-
-
     async def all_cargo(self):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM cargo")
                 return cur.fetchall()
 
     async def del_cargo(self):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cur:
                 cur.execute('DELETE FROM cargo;', )
                 conn.commit()
 
     async def edit_box_cargo(self, name, new_quantity):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cur:
-                cur.execute(f'UPDATE cargo SET quantity_box = %s WHERE name = %s',(new_quantity, name))
+                cur.execute(f'UPDATE cargo SET quantity_box = %s WHERE name = %s', (new_quantity, name))
                 conn.commit()
 
 
 class Cargonist:
     def __init__(self):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""CREATE TABLE IF NOT EXISTS prod(    
                    name VARCHAR(40) PRIMARY KEY NOT NULL,
@@ -71,7 +68,7 @@ class Cargonist:
 
     async def add_product(self, name: str, boxs: int, quantity_item: int, price: float, weight: float):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 try:
                     cursor.execute(f"INSERT INTO prod VALUES ('{name}', {boxs}, {quantity_item}, {price}, {weight})")
@@ -82,22 +79,21 @@ class Cargonist:
 
     async def get_all_product(self):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT name FROM prod")
                 return cursor.fetchall()
 
-
     async def delete_product(self, name):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 cursor.execute(f"DELETE FROM prod WHERE name='{name}'")
                 conn.commit()
 
     async def get_by_name(self, name):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 try:
                     cursor.execute(f"SELECT * FROM prod WHERE name = '{name}';")
@@ -117,7 +113,7 @@ class Cargonist:
 
     async def edit_price(self, product_name, new_price):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE prod SET price = %s WHERE name = %s;', (new_price, product_name))
                 conn.commit()
@@ -127,16 +123,15 @@ class Manager:
     async def get_data_cargo(self):
 
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
-
                 cursor.execute("SELECT * FROM cargo;")
                 cargo_list = cursor.fetchall()
                 return cargo_list
 
     async def get_data_product(self, name):
         with psycopg2.connect(dbname=NAME_DB, user=USER_DB,
-                              password=PASSWORD_DB, host='localhost') as conn:
+                              password=PASSWORD_DB, host='db') as conn:
             with conn.cursor() as cursor:
                 cursor.execute(f"SELECT * FROM prod WHERE name = '{name}';")
                 cargo_list = cursor.fetchone()
