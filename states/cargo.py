@@ -25,3 +25,5 @@ class FormingCargoState(StatesGroup):
     start = State()
     quantity = State()
     cargo_del = State()
+    cargo_edit = State()
+    cargo_get_box = State()

@@ -10,7 +10,8 @@ class FormingCargonist:
         self.cur = self.conn.cursor()
         self.cur.execute("""CREATE TABLE IF NOT EXISTS cargo(      
                    name VARCHAR(40)  PRIMARY KEY NOT NULL,
-                   quantity_goddons INTEGER,
+                   quantity_poddons INTEGER,
+                   quantity_box INTEGER,
                    FOREIGN KEY(name) REFERENCES prod(name));
                 """)
         self.conn.commit()
@@ -19,7 +20,9 @@ class FormingCargonist:
         self.conn.close()
 
     async def add_cargo(self, name, quantyti):
-        self.cur.execute(f"INSERT INTO cargo VALUES ('{name}', {quantyti})")
+        query_boxs = self.cur.execute('SELECT quantity_kor FROM prod WHERE name=?', (name,))
+        quantity_box = int(query_boxs.fetchone()[0]) * int(quantyti)
+        self.cur.execute(f"INSERT INTO cargo VALUES ('{name}', {quantyti}, {quantity_box})")
         self.conn.commit()
 
     async def all_cargo(self):
@@ -28,6 +31,10 @@ class FormingCargonist:
 
     async def del_cargo(self):
         self.cur.execute('DELETE FROM cargo;', )
+        self.conn.commit()
+
+    async def edit_box_cargo(self, name, new_quantity):
+        self.cur.execute('''UPDATE cargo SET quantity_box = ? WHERE name = ?''', (new_quantity, name))
         self.conn.commit()
 
 
@@ -109,10 +116,11 @@ class Manager:
         cargo = await self.get_data_cargo()
         for item in cargo:
             data = await self.get_data_product(item[0])
+
             res.update(
                 {item[0]: {
                     'count': item[1],
-                    'boxs': data[1],
+                    'boxs': item[2],
                     'quantyti': data[2],
                     'price': data[3],
                     'weight': data[4]
@@ -134,14 +142,14 @@ class Manager:
         for item, element in data.items():
 
             # текст вес
-            coutn_box = str(int(element['count']) * int(element['boxs']))
-            count_bottle = str(int(element['count']) * int(element['boxs'] * int(element['quantyti'])))
+            coutn_box = str(int(element['boxs']))
+            count_bottle = str(int(element['boxs'] * int(element['quantyti'])))
             _weight = str(float(count_bottle) * float(element['weight']))
             number = Decimal(_weight)
             weight = number.quantize(Decimal("1.00"))
 
             o_weight += weight
-            # текст деньги
+
             _money = str(float(count_bottle) * float(element['price']))
             number = Decimal(_money)
             price = number.quantize(Decimal("1.00"))

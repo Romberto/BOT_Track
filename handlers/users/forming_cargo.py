@@ -33,6 +33,38 @@ async def del_cargo(message: types.Message, state: FSMContext):
     await message.answer('Погрузка удалена, кузов пуст', reply_markup=cargo_kb)
 
 
+@dp.message_handler(state=FormingCargoState.cargo_del, text='Изменить кол-во коробок')
+async def edit_boxs(message: types.Message, state: FSMContext):
+    fc = FormingCargonist()
+    all_cargo = await fc.all_cargo()
+    await fc.close()
+    edit_cargo_kb = types.InlineKeyboardMarkup(row_width=2)
+    await state.set_state(FormingCargoState.cargo_edit)
+    for cargo in all_cargo:
+        edit_cargo_kb.add(types.InlineKeyboardButton(text=cargo[0], callback_data=cargo[0]))
+    await message.answer('Выберите продукт', reply_markup=edit_cargo_kb)
+
+
+@dp.callback_query_handler(state=FormingCargoState.cargo_edit)
+async def edit_cargo_boxes(call: types.CallbackQuery, state: FSMContext):
+    name = call.data
+    await state.set_state(FormingCargoState.cargo_get_box)
+    await state.update_data(edit_name=name)
+    await call.message.answer(f'Меняем кол-во {name} \nУкажите новое кол-во коробок/вёдер:')
+
+
+@dp.message_handler(state=FormingCargoState.cargo_get_box)
+async def edit_cargo_fin(message:types.Message, state:FSMContext):
+    if not message.text.isdigit():
+        await message.answer('Введите количество цифрой')
+    else:
+        data = await state.get_data()
+        name = data['edit_name']
+        fc = FormingCargonist()
+        await fc.edit_box_cargo(name=name, new_quantity=int(message.text))
+        await fc.close()
+        await state.set_state(CargoState.start)
+        await message.answer(f'Количество коробок у продукта {name} изменено на {message.text}', reply_markup=cargo_kb)
 @dp.message_handler(
     state=[CargoState.start, FormingCargoState.start, FormingCargoState.quantity, FormingCargoState.cargo_del],
     text='Формировать груз')
@@ -58,7 +90,6 @@ async def get_quantity_p(call: types.CallbackQuery, state: FSMContext):
 @dp.message_handler(state=FormingCargoState.quantity)
 async def save_row_cargo(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-
         quantity = int(message.text)
         data = await state.get_data()
         name = data['product']
