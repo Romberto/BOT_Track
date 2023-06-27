@@ -61,8 +61,8 @@ class Cargonist:
                    name VARCHAR(40) PRIMARY KEY NOT NULL,
                    quantity_kor INTEGER, 
                    quantity_kg_or_ed INTEGER,
-                   price INTEGER,
-                   weight INTEGER);
+                   price NUMERIC(10, 2),
+                   weight NUMERIC(10, 2));
                 """)
                 conn.commit()
 
