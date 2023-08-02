@@ -24,6 +24,7 @@ async def get_number_cars(message: types.Message, state: FSMContext):
         # todo добавить метод для добавления строки в google таблицу, метод принимае два аргумента: summ , numbers
         await ss.add_row(quantity_cars,summ_azs)
         await message.answer(f'строка добавленна')
+
         await state.finish()
     else:
         await message.answer('сумма принимается только цифрами')

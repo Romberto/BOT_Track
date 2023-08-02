@@ -183,7 +183,7 @@ class Manager:
             if item.capitalize().startswith('Майонез'):
                 text_weight += f'{item} {coutn_box}вед. * {element["weight"]}кг. = {weight}кг.\n'
                 text_money += f"{item} {count_bottle}вед. * {element['price']}руб. = {price}руб.\n"
-            elif item.capitalize().startswith('Маргарин') or item.capitalize().startswith('Пальм'):
+            elif item.capitalize().startswith('Маргарин') or item.capitalize().startswith('Пальм') or item.capitalize().startswith('ЗМЖ') or item.capitalize().startswith('Змж'):
                 text_weight += f'{item} {coutn_box}кор. * {element["quantyti"]}кг. = {weight}кг.\n'
                 text_money += f"{item} {count_bottle}кг. * {element['price']}руб. = {price}руб.\n"
             else:
